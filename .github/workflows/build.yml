@@ -691,31 +691,31 @@ jobs:
       - name: Download Windows XP artifact
         uses: actions/download-artifact@v3
         with:
-          name: tic80-winxp-stub
+          name: tic80-winxp-pro
           path: winxpdir
 
       - name: Download Windows artifact
         uses: actions/download-artifact@v3
         with:
-          name: tic80-windows-stub
+          name: tic80-windows-pro
           path: windir
 
       - name: Download Ubuntu artifact
         uses: actions/download-artifact@v3
         with:
-          name: tic80-linux-stub
+          name: tic80-linux-pro
           path: linuxdir
 
       - name: Download RPI artifact
         uses: actions/download-artifact@v3
         with:
-          name: tic80-rpi-stub
+          name: tic80-rpi-pro
           path: rpidir
 
       - name: Download MacOS artifact
         uses: actions/download-artifact@v3
         with:
-          name: tic80-macos-stub
+          name: tic80-macos-pro
           path: macdir
 
       - name: Download HTML artifact
