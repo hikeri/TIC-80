@@ -914,7 +914,10 @@ static inline float animEffect(AnimEffect effect, float x)
 static void animTick(Movie* movie)
 {
     for(Anim* it = movie->items, *end = it + movie->count; it != end; ++it)
-        *it->value = lerp(it->start, it->end, animEffect(it->effect, (float)movie->tick / it->time));
+    {
+	float tick = (float)(movie->tick < it->time ? movie->tick : it->time);
+        *it->value = lerp(it->start, it->end, animEffect(it->effect, tick / it->time));
+    }
 }
 
 void processAnim(Movie* movie, void* data)
@@ -1346,8 +1349,7 @@ static void confirmHandler(bool yes, void* data)
 
         if(studio->menuMode == TIC_RUN_MODE)
         {
-            tic_core_resume(studio->tic);
-            studio->mode = TIC_RUN_MODE;
+            resumeGame(studio);
         }
         else setStudioMode(studio, studio->menuMode);
 
@@ -1370,32 +1372,33 @@ void confirmDialog(Studio* studio, const char** text, s32 rows, ConfirmCallback 
     if(studio->mode != TIC_MENU_MODE)
     {
         studio->menuMode = studio->mode;
-        studio->mode = TIC_MENU_MODE;
+    }
+        
+    setStudioMode(studio, TIC_MENU_MODE);
 
-        static MenuItem Answers[] = 
-        {
-            {"",    NULL},
-            {"(N)O",  confirmNo},
-            {"(Y)ES", confirmYes},
-        };
+    static MenuItem Answers[] = 
+    {
+        {"",    NULL},
+        {"(N)O",  confirmNo},
+        {"(Y)ES", confirmYes},
+    };
 
-        Answers[1].hotkey = tic_key_n;
-        Answers[2].hotkey = tic_key_y;
+    Answers[1].hotkey = tic_key_n;
+    Answers[2].hotkey = tic_key_y;
 
-        s32 count = rows + COUNT_OF(Answers);
-        MenuItem* items = malloc(sizeof items[0] * count);
-        SCOPE(free(items))
-        {
-            for(s32 i = 0; i != rows; ++i)
-                items[i] = (MenuItem){text[i], NULL};
+    s32 count = rows + COUNT_OF(Answers);
+    MenuItem* items = malloc(sizeof items[0] * count);
+    SCOPE(free(items))
+    {
+        for(s32 i = 0; i != rows; ++i)
+            items[i] = (MenuItem){text[i], NULL};
 
-            memcpy(items + rows, Answers, sizeof Answers);
+        memcpy(items + rows, Answers, sizeof Answers);
 
-            studio_menu_init(studio->menu, items, count, count - 2, 0,
-                NULL, MOVE((ConfirmData){studio, callback, data}));
+        studio_menu_init(studio->menu, items, count, count - 2, 0,
+            NULL, MOVE((ConfirmData){studio, callback, data}));
 
-            playSystemSfx(studio, 0);
-        }
+        playSystemSfx(studio, 0);
     }
 }
 
@@ -1685,13 +1688,7 @@ static void switchBank(Studio* studio, s32 bank)
 
 void gotoMenu(Studio* studio) 
 {
-    if(studio->mode != TIC_MENU_MODE)
-    {
-        tic_core_pause(studio->tic);
-        tic_api_reset(studio->tic);
-        studio->mode = TIC_MENU_MODE;
-    }
-
+    setStudioMode(studio, TIC_MENU_MODE);
     studio->mainmenu = studio_mainmenu_init(studio->menu, studio->config);
 }
 
